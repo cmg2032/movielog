@@ -1,54 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
- 
-import 'theme/app_colors.dart';
-import 'theme/app_text_styles.dart';
-import 'main.dart';
- 
+
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../widget/common_app_bar.dart';
+
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
- 
+
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
- 
+
 class _SignUpScreenState extends State<SignUpScreen> {
   final formKey = GlobalKey<FormState>();
- 
+
   final nicknameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
- 
+
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
- 
+
   bool agreedToTerms = false;
   bool obscurePassword = true;
   bool get canSignUp {
     final nickname = nicknameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
- 
+
     return nickname.length >= 2 &&
         RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email) &&
         password.length >= 8 &&
         agreedToTerms;
   }
- 
+
   Widget? statusIcon(String text, bool isValid) {
     if (text.trim().isEmpty) return null;
- 
+
     return Icon(
       isValid ? Icons.check_circle : Icons.error_outline,
       color: isValid ? AppColors.violet : Colors.red,
     );
   }
- 
+
   @override
   void initState() {
     super.initState();
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +59,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             final isWide = constraints.maxWidth >= 700;
             return Form(
               key: formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -84,14 +83,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const SignUpHeader(),
- 
+
                             const SizedBox(height: 64),
                             const Text('닉네임', style: AppTextStyles.titleMedium),
- 
+
                             const SizedBox(height: 10),
- 
+
                             TextFormField(
                               controller: nicknameController,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 hintText: '닉네임을 입력해주세요',
@@ -135,15 +136,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               validator: (value) {
                                 final nickname = value?.trim() ?? '';
- 
+
                                 if (nickname.isEmpty) {
                                   return '닉네임을 입력해주세요.';
                                 }
- 
+
                                 if (nickname.length < 2) {
                                   return '닉네임은 두 글자 이상 입력해주세요.';
                                 }
- 
+
                                 return null;
                               },
                               onChanged: (_) {
@@ -153,17 +154,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 emailFocusNode.requestFocus();
                               },
                             ),
- 
+
                             const SizedBox(height: 24),
- 
+
                             const Text('이메일', style: AppTextStyles.titleMedium),
- 
+
                             const SizedBox(height: 10),
- 
+
                             TextFormField(
                               controller: emailController,
                               focusNode: emailFocusNode,
                               keyboardType: TextInputType.emailAddress,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 hintText: '이메일 주소를 입력해주세요.',
@@ -205,16 +208,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               validator: (value) {
                                 final email = value?.trim() ?? '';
- 
+
                                 if (email.isEmpty) {
                                   return '이메일을 입력해주세요.';
                                 }
- 
+
                                 if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$')
                                     .hasMatch(email)) {
                                   return '올바른 이메일 주소를 입력해주세요.';
                                 }
- 
+
                                 return null;
                               },
                               onChanged: (_) {
@@ -224,21 +227,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 passwordFocusNode.requestFocus();
                               },
                             ),
- 
+
                             const SizedBox(height: 24),
- 
+
                             const Text(
                               '비밀번호',
                               style: AppTextStyles.titleMedium,
                             ),
- 
+
                             const SizedBox(height: 10),
- 
+
                             TextFormField(
                               controller: passwordController,
                               focusNode: passwordFocusNode,
                               obscureText: obscurePassword,
                               textInputAction: TextInputAction.done,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: InputDecoration(
                                 hintText: '비밀번호를 입력해주세요.',
                                 suffixIcon: statusIcon(
@@ -278,15 +283,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               validator: (value) {
                                 final password = value?.trim() ?? '';
- 
+
                                 if (password.isEmpty) {
                                   return '비밀번호를 입력해주세요.';
                                 }
- 
+
                                 if (password.length < 8) {
                                   return '비밀번호는 8글자 이상 입력해주세요.';
                                 }
- 
+
                                 return null;
                               },
                               onChanged: (_) {
@@ -298,12 +303,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ],
                         ),
- 
+
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const SizedBox(height: 40),
- 
+
                             TermsAgreement(
                               value: agreedToTerms,
                               onChanged: (value) {
@@ -313,7 +318,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               },
                             ),
                             const SizedBox(height: 16),
- 
+
                             SignUpButton(
                               onPressed: canSignUp
                                   ? () {
@@ -326,9 +331,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     }
                                   : null,
                             ),
- 
+
                             const SizedBox(height: 40),
- 
+
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -363,7 +368,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
- 
+
   @override
   void dispose() {
     nicknameController.dispose();
@@ -374,10 +379,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 }
- 
+
 class SignUpHeader extends StatelessWidget {
   const SignUpHeader({super.key});
- 
+
   @override
   Widget build(BuildContext context) {
     return const Column(
@@ -399,17 +404,17 @@ class SignUpHeader extends StatelessWidget {
     );
   }
 }
- 
+
 class TermsAgreement extends StatelessWidget {
   const TermsAgreement({
     super.key,
     required this.value,
     required this.onChanged,
   });
- 
+
   final bool value;
   final ValueChanged<bool> onChanged;
- 
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -426,12 +431,12 @@ class TermsAgreement extends StatelessWidget {
     );
   }
 }
- 
+
 class SignUpButton extends StatelessWidget {
   const SignUpButton({super.key, required this.onPressed});
- 
+
   final VoidCallback? onPressed;
- 
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -451,4 +456,3 @@ class SignUpButton extends StatelessWidget {
     );
   }
 }
- 

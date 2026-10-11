@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../main.dart';
-import '../start_screen.dart';
-import '../register_screen.dart';
+import '../data/mock_data.dart';
+import '../screen/home_screen.dart';
+import '../screen/main_screen.dart';
+import '../screen/movie_detail_screen.dart';
+import '../screen/movie_list_screen.dart';
+import '../screen/profile_screen.dart';
+import '../screen/register_screen.dart';
+import '../screen/start_screen.dart';
+import '../screen/login_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -16,6 +22,7 @@ class AppRouter {
         path: '/register',
         builder: (context, state) => const SignUpScreen(),
       ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       ShellRoute(
         builder: (context, state, child) {
           return MainScreen(
