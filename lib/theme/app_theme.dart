@@ -28,12 +28,8 @@ abstract final class AppTheme {
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.lightViolet,
       side: BorderSide.none,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(40),
-      ),
-      labelStyle: AppTextStyles.bodyMedium.copyWith(
-        color: AppColors.violet,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+      labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.violet),
     ),
   );
 }

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../models/movie.dart';
 import '../theme/app_colors.dart';
-import '../widget/movie_card.dart';
+import 'movie_card.dart';
 
 class FeaturedMovieCard extends StatelessWidget {
   const FeaturedMovieCard({

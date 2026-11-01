@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/movie.dart';
-import '../widget/common_app_bar.dart';
-import '../widget/movie_detail.dart';
-import '../widget/movie_rating.dart';
+import '../widgets/common_app_bar.dart';
+import '../widgets/movie_detail.dart';
+import '../widgets/movie_rating.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movie});
@@ -38,18 +38,28 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     final rating = await showDialog<double>(
       context: context,
       builder: (context) {
-        return const RatingDialog();
+        // 이미 남긴 평점이 있으면 넘겨서 "다시 선택하기" 화면으로 시작
+        return RatingDialog(initialRating: myRating ?? 0);
       },
     );
 
-    debugPrint('$rating');
+    debugPrint('평점 결과: $rating (movieId: ${widget.movie.id})');
 
-    if (rating == null || !mounted) return;
+    if (rating == null || !mounted) return; // 닫기 = 변경 없음
+
+    if (rating == 0) {
+      // 평점 초기화 후 확인 = 삭제
+      setState(() {
+        myRating = null;
+      });
+      _showMessage('평점을 삭제했어요.');
+      return;
+    }
 
     setState(() {
       myRating = rating;
     });
-    _showMessage('평점 $rating점을 저장했어요.');
+    _showMessage('평점 ${rating.toStringAsFixed(1)}점을 저장했어요.');
   }
 
   void _goBack() {
@@ -82,7 +92,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            MoviePoster(posterAsset: movie.posterAsset),
+            MovieDetailPoster(movie: movie),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
               child: MovieInfo(movie: movie, myRating: myRating),

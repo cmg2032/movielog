@@ -10,8 +10,5 @@ abstract final class AppColors {
 
   static const black = Color(0xFF1C1B1F);
   static const gray = Color(0xFF79747E);
-  static const TextStyle chipLabel = TextStyle(
-  color: AppColors.violet,
-);
+  static const TextStyle chipLabel = TextStyle(color: AppColors.violet);
 }
-

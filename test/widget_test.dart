@@ -5,10 +5,9 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-
-import 'package:flutter_application_1/main.dart';
-
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:flutter_application_1/app/movie_log_app.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
@@ -18,7 +17,5 @@ void main() {
     // Verify that our counter starts at 0.
     expect(find.text('회원가입'), findsOneWidget);
     expect(find.text('가입하기'), findsOneWidget);
-
-    
   });
 }
