@@ -2,33 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({
-    super.key,
-    required this.currentIndex,
-    required this.child,
-  });
+  const MainScreen({super.key, required this.navigationShell});
 
-  final int currentIndex;
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: child,
+      body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
+        selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
-          switch (index) {
-            case 0:
-              context.go('/home');
-              break;
-            case 1:
-              context.go('/movies');
-              break;
-            case 2:
-              context.go('/my');
-              break;
-          }
+          // 탭 전환: 각 탭의 마지막 화면·스크롤·필터 상태가 그대로 유지됨
+          navigationShell.goBranch(index);
         },
         destinations: const [
           NavigationDestination(

@@ -1,34 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'app/movie_log_app.dart';
+import 'data/mock_data.dart';
+import 'models/movie.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_text_styles.dart';
-import 'theme/app_theme.dart';
 
-import 'router/app_router.dart';
-import 'models/movie.dart';
-import 'data/mock_data.dart';
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
 
-void main() {
   for (final Movie movie in movies) {
     debugPrint('${movie.id}. ${movie.title}');
   }
   debugPrint('닉네임: ${displayName(nickname)}');
 
   runApp(const MovieLogApp());
-}
-
-class MovieLogApp extends StatelessWidget {
-  const MovieLogApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'MovieLog',
-      theme: AppTheme.light,
-      routerConfig: AppRouter.router,
-    );
-  }
 }
 
 String displayName(String? nickname) {
