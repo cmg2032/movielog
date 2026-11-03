@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../models/movie.dart';
 import '../widgets/common_app_bar.dart';
 import '../widgets/movie_detail.dart';
-import '../widgets/movie_rating.dart';
+import '../widgets/rating_dialog.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movie});

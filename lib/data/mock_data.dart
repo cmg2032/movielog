@@ -80,7 +80,6 @@ class MovieLoadException implements Exception {
 class FakeMovieService {
   const FakeMovieService();
 
-  // TODO(5주차 유저별 평점 조회 API): 실제 API 호출로 교체
   Future<List<Movie>> fetchMovies({
     MovieLoadMode mode = MovieLoadMode.success,
   }) async {

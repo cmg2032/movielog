@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../data/dto/tmdb_genre_dto.dart';
+import '../models/tmdb_genre_dto.dart';
 import '../theme/app_colors.dart';
 
 class GenreChip extends StatelessWidget {

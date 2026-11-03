@@ -4,7 +4,7 @@ import '../data/mock_data.dart';
 import '../models/movie.dart';
 import '../theme/app_colors.dart';
 import 'movie_card.dart';
-import 'movie_rating.dart';
+import 'movie_rating_input.dart';
 
 /// 상세 화면 포스터 (2:3 비율)
 /// TMDB 영화면 네트워크 이미지, mock 영화면 로컬 이미지 (movie_card.dart의 MoviePoster 재사용)

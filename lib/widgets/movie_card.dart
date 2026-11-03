@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/dto/tmdb_genre_dto.dart';
-import '../data/dto/tmdb_movie_dto.dart';
+import '../models/tmdb_genre_dto.dart';
+import '../models/tmdb_movie_dto.dart';
 import '../models/movie.dart';
 import '../theme/app_colors.dart';
 import 'tmdb_poster_image.dart';

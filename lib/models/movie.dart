@@ -1,4 +1,4 @@
-import '../data/dto/tmdb_movie_dto.dart';
+import 'tmdb_movie_dto.dart';
 
 class Movie {
   const Movie({

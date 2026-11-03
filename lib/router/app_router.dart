@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/mock_data.dart';
+import '../data/services/member_check_service.dart';
+import '../data/services/rating_api_service.dart';
 import '../data/services/tmdb_movie_service.dart';
 import '../models/movie.dart';
 import '../screens/home_screen.dart';
@@ -15,17 +17,26 @@ import '../screens/register_screen.dart';
 import '../screens/start_screen.dart';
 import '../view_models/movie_home_view_model.dart';
 import '../view_models/movie_list_view_model.dart';
+import '../view_models/sign_up_view_model.dart';
 
 class AppRouter {
   AppRouter._();
 
+  /// root Navigator 키: 하단 탭을 가리는 전체 화면 라우트에 사용
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
+
   static final router = GoRouter(
     initialLocation: '/start',
+    navigatorKey: rootNavigatorKey,
     routes: [
       GoRoute(path: '/start', builder: (context, state) => const StartScreen()),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const SignUpScreen(),
+        builder: (context, state) => ChangeNotifierProvider<SignUpViewModel>(
+          create: (context) =>
+              SignUpViewModel(context.read<MemberCheckService>()),
+          child: const SignUpScreen(),
+        ),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
@@ -78,6 +89,23 @@ class AppRouter {
               GoRoute(
                 path: '/my',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  // 최종 경로: /my/ratings
+                  GoRoute(
+                    path: 'ratings',
+                    // root Navigator 위에 띄워서 하단 NavigationBar를 가림
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) =>
+                        ChangeNotifierProvider<MyRatingsViewModel>(
+                          create: (context) => MyRatingsViewModel(
+                            context.read<RatingApiService>(),
+                            context.read<TmdbMovieService>(),
+                            sampleMemberId, // 학습용 ID 1
+                          )..load(),
+                          child: const MyRatingsScreen(),
+                        ),
+                  ),
+                ],
               ),
             ],
           ),
