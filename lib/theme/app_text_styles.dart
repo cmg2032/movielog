@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 abstract final class AppTextStyles {
@@ -27,7 +28,5 @@ abstract final class AppTextStyles {
     color: AppColors.gray,
   );
 
-  static const TextStyle chipLabel = TextStyle(
-    color: AppColors.violet,
-  );
+  static const TextStyle chipLabel = TextStyle(color: AppColors.violet);
 }

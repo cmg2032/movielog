@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
+/// 별점 입력 (0.5 단위, 5개)
 class MovieRatingInput extends StatelessWidget {
   const MovieRatingInput({
     super.key,
@@ -27,6 +28,7 @@ class MovieRatingInput extends StatelessWidget {
   }
 }
 
+/// 별점 표시 (읽기 전용) + 숫자
 class MovieRatingDisplay extends StatelessWidget {
   const MovieRatingDisplay({
     super.key,
@@ -58,51 +60,6 @@ class MovieRatingDisplay extends StatelessWidget {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ],
-    );
-  }
-}
-
-class RatingDialog extends StatefulWidget {
-  const RatingDialog({super.key});
-
-  @override
-  State<RatingDialog> createState() => _RatingDialogState();
-}
-
-class _RatingDialogState extends State<RatingDialog> {
-  double rating = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              '영화는 어떠셨나요?',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 24),
-            MovieRatingInput(
-              rating: rating,
-              onChanged: (value) {
-                setState(() {
-                  rating = value;
-                });
-              },
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, rating);
-              },
-              child: const Text('확인'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

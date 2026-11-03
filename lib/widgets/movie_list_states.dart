@@ -19,9 +19,10 @@ class MovieListEmpty extends StatelessWidget {
 }
 
 class MovieListError extends StatelessWidget {
-  const MovieListError({super.key, required this.onRetry});
+  const MovieListError({super.key, required this.onRetry, this.message});
 
   final VoidCallback onRetry;
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class MovieListError extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline),
           const SizedBox(height: 12),
-          const Text('영화를 불러오지 못했습니다.'),
+          Text(message ?? '영화를 불러오지 못했습니다.'),
           const SizedBox(height: 16),
           FilledButton(onPressed: onRetry, child: const Text('다시 시도')),
         ],

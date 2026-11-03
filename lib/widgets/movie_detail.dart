@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../data/mock_data.dart';
 import '../models/movie.dart';
 import '../theme/app_colors.dart';
-import '../widget/movie_card.dart';
-import '../widget/movie_rating.dart';
-import '../data/mock_data.dart';
+import 'movie_card.dart';
+import 'movie_rating_input.dart';
 
-class MoviePoster extends StatelessWidget {
-  const MoviePoster({super.key, required this.posterAsset});
+/// 상세 화면 포스터 (2:3 비율)
+/// TMDB 영화면 네트워크 이미지, mock 영화면 로컬 이미지 (movie_card.dart의 MoviePoster 재사용)
+class MovieDetailPoster extends StatelessWidget {
+  const MovieDetailPoster({super.key, required this.movie});
 
-  final String posterAsset;
+  final Movie movie;
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 2 / 3,
-      child: Image.asset(
-        posterAsset,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return const PosterPlaceholder();
-        },
-      ),
+      child: MoviePoster(movie: movie),
     );
   }
 }
@@ -31,6 +27,16 @@ class MovieInfo extends StatelessWidget {
 
   final Movie movie;
   final double? myRating;
+
+  // 비어 있는 값은 빼고 표시 (예: "2008 • 액션/범죄 • 152분", TMDB면 "2008 • 액션/범죄")
+  String get _subtitle {
+    final genres = movie.mainGenres.where((g) => g.isNotEmpty).toList();
+    return [
+      if (movie.year > 0) '${movie.year}',
+      if (genres.isNotEmpty) genres.join('/'),
+      if (movie.runtime > 0) '${movie.runtime}분',
+    ].join(' • ');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +53,7 @@ class MovieInfo extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          '${movie.year} • ${movie.mainGenres.join('/')} • ${movie.runtime}분',
+          _subtitle,
           style: const TextStyle(fontSize: 14, color: AppColors.gray),
         ),
         const SizedBox(height: 14),

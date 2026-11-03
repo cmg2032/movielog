@@ -1,24 +1,12 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-
-import 'package:flutter_application_1/main.dart';
-
+import 'package:flutter_application_1/app/movie_log_app.dart';
+import 'package:flutter_application_1/screens/start_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('앱을 켜면 시작 화면이 보인다', (WidgetTester tester) async {
     await tester.pumpWidget(const MovieLogApp());
+    await tester.pump();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('회원가입'), findsOneWidget);
-    expect(find.text('가입하기'), findsOneWidget);
-
-    
+    expect(find.byType(StartScreen), findsOneWidget);
   });
 }
