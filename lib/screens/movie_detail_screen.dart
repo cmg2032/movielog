@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/movie.dart';
+import '../view_models/movie_detail_view_model.dart';
 import '../widgets/common_app_bar.dart';
 import '../widgets/movie_detail.dart';
 import '../widgets/rating_dialog.dart';
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movie});
-
-  final Movie movie;
+  const MovieDetailScreen({super.key});
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
@@ -17,7 +17,7 @@ class MovieDetailScreen extends StatefulWidget {
 
 class _MovieDetailScreenState extends State<MovieDetailScreen> {
   bool isFavorite = false;
-  double? myRating;
+  int? myScore; // 이 화면에서 저장에 성공한 내 평점
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
@@ -35,31 +35,41 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   }
 
   Future<void> _openRatingDialog() async {
-    final rating = await showDialog<double>(
+    int? savedScore;
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        // 이미 남긴 평점이 있으면 넘겨서 "다시 선택하기" 화면으로 시작
-        return RatingDialog(initialRating: myRating ?? 0);
-      },
+      barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막습니다.
+      builder: (_) => RatingDialog(
+        onSubmit: (score, comment) async {
+          savedScore = score; // 상세 화면의 내 별점 표시용
+          final viewModel = context.read<MovieDetailViewModel>();
+          try {
+            await viewModel.createRating(score: score, comment: comment);
+          } catch (_) {
+            // 실패 Snackbar (400/404/409 등 서버 message). Dialog는 입력을 유지한 채 열려 있음
+            if (mounted) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(viewModel.submitMessage ?? '저장에 실패했습니다.'),
+                  ),
+                );
+            }
+            rethrow;
+          }
+        },
+      ),
     );
 
-    debugPrint('평점 결과: $rating (movieId: ${widget.movie.id})');
+    if (!mounted || saved != true) return;
+    setState(() => myScore = savedScore); // 상세 화면의 내 별점 표시용
 
-    if (rating == null || !mounted) return; // 닫기 = 변경 없음
-
-    if (rating == 0) {
-      // 평점 초기화 후 확인 = 삭제
-      setState(() {
-        myRating = null;
-      });
-      _showMessage('평점을 삭제했어요.');
-      return;
-    }
-
-    setState(() {
-      myRating = rating;
-    });
-    _showMessage('평점 ${rating.toStringAsFixed(1)}점을 저장했어요.');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('평점을 등록했습니다. 마이페이지의 "내가 등록한 평점"에서 확인할 수 있습니다.'),
+      ),
+    );
   }
 
   void _goBack() {
@@ -72,7 +82,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
+    // 화면 위젯은 앱 모델(Movie)을 쓰므로 뷰모델의 TMDB 영화를 변환
+    final movie = Movie.fromTmdb(context.read<MovieDetailViewModel>().movie);
 
     return Scaffold(
       appBar: CommonAppBar(
@@ -95,14 +106,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             MovieDetailPoster(movie: movie),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-              child: MovieInfo(movie: movie, myRating: myRating),
+              child: MovieInfo(movie: movie, myRating: myScore?.toDouble()),
             ),
           ],
         ),
       ),
       bottomNavigationBar: MovieActionBar(
         isFavorite: isFavorite,
-        hasRating: myRating != null,
+        hasRating: myScore != null,
         onFavorite: _toggleFavorite,
         onRate: _openRatingDialog,
       ),
