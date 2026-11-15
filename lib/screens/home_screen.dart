@@ -114,6 +114,7 @@ class HomeScreen extends StatelessWidget {
                           child: PopularMovieCard(
                             movie: movie,
                             rank: index + 1,
+                            tmdbMovie: vm.popularMovies[index],
                           ),
                         );
                       },

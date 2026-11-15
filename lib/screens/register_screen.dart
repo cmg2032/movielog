@@ -4,9 +4,22 @@ import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../models/create_member_request.dart';
+import '../view_models/learning_member_session.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/common_app_bar.dart';
 import '../widgets/movielog_button.dart';
+
+/// 비밀번호 형식 검사 (서버로 보내는 값 그대로 검사하므로 trim 안 함)
+/// 통과하면 null, 아니면 입력창에 보여줄 문구
+String? validatePasswordFormat(String? value) {
+  final password = value ?? '';
+  if (password.isEmpty) return '비밀번호를 입력해주세요.';
+  if (!_SignUpScreenState._passwordRegExp.hasMatch(password)) {
+    return '대문자/소문자/숫자/특수문자를 포함해 8자 이상 입력해주세요.';
+  }
+  return null;
+}
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -30,24 +43,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   static final _emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
 
+  /// 서버(create-member.dto.ts)와 같은 비밀번호 규칙:
+  /// 대문자·소문자·숫자·특수문자를 각각 1개 이상 포함한 8~64자
+  static final _passwordRegExp = RegExp(
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,64}$',
+  );
+
   /// 입력창·버튼 높이 (같게 맞춤)
   static const _fieldHeight = 56.0;
 
-  /// 가입하기 활성 조건: 모든 입력이 유효 + 닉네임·이메일 중복 확인 통과
+  /// 가입하기 활성 조건: 모든 입력이 유효 + 닉네임·이메일 중복 확인 통과 + 가입 요청 중 아님
   bool _canSignUp(SignUpViewModel viewModel) {
-    return nicknameController.text.trim().length >= 2 &&
-        viewModel.isNicknameAvailable &&
+    final nickname = nicknameController.text.trim();
+    return nickname.length >= 2 &&
+        nickname.length <= 12 &&
         _emailRegExp.hasMatch(emailController.text.trim()) &&
-        viewModel.isEmailAvailable &&
-        passwordController.text.trim().length >= 8 &&
-        agreedToTerms;
+        _passwordRegExp.hasMatch(passwordController.text) &&
+        agreedToTerms &&
+        viewModel.canSubmit; // 닉네임·이메일 '사용 가능' + 제출 중 아님
   }
 
-  /// 실제 회원가입 제출은 이번 주차 범위 아님 → 유효하면 홈으로
-  void _onSubmit() {
-    final isValid = formKey.currentState?.validate() ?? false;
-    if (isValid) {
+  /// 서버에 회원가입 요청 → 성공하면 memberId를 세션에 저장 후 영화 목록으로
+  Future<void> onSubmitPressed(BuildContext context) async {
+    if (!formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+
+    final viewModel = context.read<SignUpViewModel>();
+    // 중복 확인을 통과한 값과 같음 (값을 고치면 확인 상태가 풀려 버튼이 꺼짐)
+    await viewModel.submit(
+      CreateMemberRequest(
+        email: emailController.text,
+        password: passwordController.text,
+        nickname: nicknameController.text,
+      ),
+    );
+    if (!context.mounted) return;
+
+    if (viewModel.submitStatus == SubmitStatus.success &&
+        viewModel.createdMemberId != null) {
+      context.read<LearningMemberSession>().setMemberId(
+        viewModel.createdMemberId!,
+      );
       context.go('/home');
+      return;
+    }
+
+    // 실패: 비밀번호 문제는 입력창 아래, 나머지는 SnackBar로 표시
+    if (viewModel.snackbarMessage != null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(viewModel.snackbarMessage!)));
     }
   }
 
@@ -166,13 +211,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonAppBar(
-        title: '회원가입',
-        centerTitle: true,
-        onBack: () => context.canPop() ? context.pop() : context.go('/start'),
-      ),
-      body: SafeArea(
+    // 가입 요청 중에는 뒤로가기(시스템·AppBar)로 화면을 떠나지 못하게 막음
+    // 폼은 child로 넘겨서 submitStatus가 바뀔 때 다시 만들지 않음
+    return Consumer<SignUpViewModel>(
+      builder: (context, viewModel, child) {
+        final isSubmitting = viewModel.submitStatus == SubmitStatus.submitting;
+        return PopScope(
+          canPop: !isSubmitting,
+          child: Scaffold(
+            appBar: CommonAppBar(
+              title: '회원가입',
+              centerTitle: true,
+              // context.pop()은 PopScope를 거치지 않으므로 여기서 직접 막음
+              onBack: () {
+                if (isSubmitting) return;
+                context.canPop() ? context.pop() : context.go('/start');
+              },
+            ),
+            body: child,
+          ),
+        );
+      },
+      child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             final isWide = constraints.maxWidth >= 700;
@@ -233,6 +293,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     if (nickname.length < 2) {
                                       return '닉네임은 두 글자 이상 입력해 주세요.';
                                     }
+                                    if (nickname.length > 12) {
+                                      return '닉네임은 12자 이하로 입력해 주세요.';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -289,18 +352,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       AutovalidateMode.onUserInteraction,
                                   decoration: _inputDecoration(
                                     hintText: '비밀번호를 입력해주세요.',
+                                    errorText: viewModel.passwordErrorText,
                                   ),
-                                  validator: (value) {
-                                    final password = value?.trim() ?? '';
-                                    if (password.isEmpty) {
-                                      return '비밀번호를 입력해주세요.';
-                                    }
-                                    if (password.length < 8) {
-                                      return '비밀번호는 8글자 이상 입력해주세요.';
-                                    }
-                                    return null;
+                                  validator: (value) =>
+                                      validatePasswordFormat(value),
+                                  onChanged: (_) {
+                                    setState(() {});
+                                    viewModel.onPasswordChanged();
                                   },
-                                  onChanged: (_) => setState(() {}),
                                   onFieldSubmitted: (_) {
                                     FocusScope.of(context).unfocus();
                                   },
@@ -325,8 +384,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   label: '가입하기',
                                   width: double.infinity,
                                   height: _fieldHeight,
+                                  isLoading:
+                                      viewModel.submitStatus ==
+                                      SubmitStatus.submitting,
                                   onPressed: _canSignUp(viewModel)
-                                      ? _onSubmit
+                                      ? () => onSubmitPressed(context)
                                       : null,
                                 ),
 

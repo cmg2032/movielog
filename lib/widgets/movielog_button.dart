@@ -11,6 +11,9 @@ class MovieLogButton extends StatelessWidget {
     this.isLoading = false,
     this.width,
     this.height = 44,
+    this.backgroundColor = AppColors.violet,
+    this.foregroundColor = AppColors.white,
+    this.borderRadius = 12,
   });
 
   final String label;
@@ -18,6 +21,9 @@ class MovieLogButton extends StatelessWidget {
   final bool isLoading;
   final double? width;
   final double height;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final double borderRadius;
 
   bool get _disabled => isLoading || onPressed == null;
 
@@ -29,16 +35,16 @@ class MovieLogButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: _disabled ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.violet,
+          backgroundColor: backgroundColor,
           disabledBackgroundColor: isLoading
               ? AppColors
                     .gray // 확인 중: 회색 + 인디케이터
               : AppColors.lightViolet, // 조건 미충족: 연보라
-          foregroundColor: AppColors.white,
+          foregroundColor: foregroundColor,
           disabledForegroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
         child: isLoading
@@ -50,7 +56,12 @@ class MovieLogButton extends StatelessWidget {
                   color: AppColors.white,
                 ),
               )
-            : Text(label, style: AppTextStyles.titleMedium),
+            : Text(
+                label,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: foregroundColor,
+                ),
+              ),
       ),
     );
   }

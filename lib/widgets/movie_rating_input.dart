@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
-/// 별점 입력 (0.5 단위, 5개)
+import '../theme/app_colors.dart';
+
+/// 별점 입력 (1점 단위, 1~5점 → 서버 평점 규칙과 동일)
 class MovieRatingInput extends StatelessWidget {
   const MovieRatingInput({
     super.key,
     required this.rating,
     required this.onChanged,
+    this.enabled = true,
   });
 
   final double rating;
   final ValueChanged<double> onChanged;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return RatingBar.builder(
+    return RatingBar(
       initialRating: rating,
-      minRating: 0.5,
-      allowHalfRating: true,
+      minRating: 1,
+      allowHalfRating: false,
+      ignoreGestures: !enabled,
       itemCount: 5,
-      itemSize: 40,
-      itemBuilder: (context, index) {
-        return const Icon(Icons.star, color: Colors.amber);
-      },
+      itemSize: 48,
+      itemPadding: const EdgeInsets.symmetric(horizontal: 2),
+      ratingWidget: RatingWidget(
+        full: const Icon(Icons.star_rounded, color: AppColors.violet),
+        half: const Icon(Icons.star_half_rounded, color: AppColors.violet),
+        empty: const Icon(Icons.star_border_rounded, color: AppColors.violet),
+      ),
       onRatingUpdate: onChanged,
     );
   }

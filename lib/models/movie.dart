@@ -46,6 +46,7 @@ class Movie {
           0,
       posterAsset: '',
       posterPath: dto.posterPath,
+      runtime: dto.runtime, // 상세 API에만 값이 있고 목록 API는 0
       rating: dto.voteAverage,
       ratingCount: dto.voteCount,
       tags: names,

@@ -8,15 +8,18 @@ import '../theme/app_colors.dart';
 import 'tmdb_poster_image.dart';
 
 class MovieCard extends StatelessWidget {
-  const MovieCard({super.key, required this.movie});
+  const MovieCard({super.key, required this.movie, this.tmdbMovie});
 
   final Movie movie;
+
+  /// 상세 화면에 extra로 넘길 원본 (있으면 상세에서 다시 불러오지 않음)
+  final TmdbMovieDto? tmdbMovie;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => context.push('/movies/${movie.id}'),
+      onTap: () => context.push('/movies/${movie.id}', extra: tmdbMovie),
       child: MovieCardContent(movie: movie),
     );
   }
@@ -179,6 +182,7 @@ class MovieGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         return MovieCard(
           movie: Movie.fromTmdb(movies[index], genreNames: genreNames),
+          tmdbMovie: movies[index],
         );
       },
     );
@@ -190,10 +194,18 @@ class MovieGrid extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class PopularMovieCard extends StatelessWidget {
-  const PopularMovieCard({super.key, required this.movie, required this.rank});
+  const PopularMovieCard({
+    super.key,
+    required this.movie,
+    required this.rank,
+    this.tmdbMovie,
+  });
 
   final Movie movie;
   final int rank;
+
+  /// 상세 화면에 extra로 넘길 원본 (있으면 상세에서 다시 불러오지 않음)
+  final TmdbMovieDto? tmdbMovie;
 
   static const _starColor = Color(0xFFE0A93B);
 
@@ -201,7 +213,7 @@ class PopularMovieCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => context.push('/movies/${movie.id}', extra: movie),
+      onTap: () => context.push('/movies/${movie.id}', extra: tmdbMovie),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
