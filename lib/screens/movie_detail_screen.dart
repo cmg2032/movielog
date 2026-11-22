@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +36,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   Future<void> _openRatingDialog() async {
     int? savedScore;
+    var alreadyRated = false;
     final saved = await showDialog<bool>(
       context: context,
       barrierDismissible: false, // 저장 중 바깥 탭으로 닫히는 것도 막습니다.
@@ -46,6 +47,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
           try {
             await viewModel.createRating(score: score, comment: comment);
           } catch (_) {
+            // RATING409_1: 다시 시도해도 실패하므로 Dialog를 닫고 기존 기록 확인 안내
+            if (viewModel.alreadyRated) {
+              alreadyRated = true;
+              return;
+            }
             // 실패 Snackbar (400/404/409 등 서버 message). Dialog는 입력을 유지한 채 열려 있음
             if (mounted) {
               ScaffoldMessenger.of(context)
@@ -63,6 +69,22 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     );
 
     if (!mounted || saved != true) return;
+
+    if (alreadyRated) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('이미 이 영화에 평점을 남기셨습니다. 기존 기록을 확인해 주세요.'),
+            action: SnackBarAction(
+              label: '내 평점 보기',
+              onPressed: () => context.push('/my/ratings'),
+            ),
+          ),
+        );
+      return;
+    }
+
     setState(() => myScore = savedScore); // 상세 화면의 내 별점 표시용
 
     ScaffoldMessenger.of(context).showSnackBar(

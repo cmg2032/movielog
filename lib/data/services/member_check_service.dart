@@ -5,34 +5,31 @@ import '../../models/common_response.dart';
 import '../../models/create_member_request.dart';
 import '../../models/sign_up_models.dart';
 
-/// 회원 API (닉네임/이메일 중복 확인, 회원가입)
-class SignUpService {
-  SignUpService(this._dio);
+/// 회원 공개 API (공개 Client): 닉네임/이메일 중복 확인, 회원가입
+class MemberCheckService {
+  MemberCheckService(this._dio);
   final Dio _dio;
 
   /// 닉네임 사용 가능 여부 (true = 사용 가능)
   Future<bool> checkNickname(String nickname) async {
     final encoded = Uri.encodeComponent(nickname.trim());
-    final response = await _dio.get('/v6/members/nickname/$encoded');
+    final response = await _dio.get('/v7/members/nickname/$encoded');
     return CheckResult.fromJson(_unwrap(response.data)).available;
   }
 
   /// 이메일 사용 가능 여부 (true = 사용 가능)
   Future<bool> checkEmail(String email) async {
     final encoded = Uri.encodeComponent(email.trim());
-    final response = await _dio.get('/v6/members/email/$encoded');
+    final response = await _dio.get('/v7/members/email/$encoded');
     return CheckResult.fromJson(_unwrap(response.data)).available;
   }
 
-  /// 회원가입: POST /v6/members
+  /// 회원가입: POST /v7/members
   /// 실패 시 DioException (409 중복, 400 검증 실패) → 뷰모델에서 처리
   Future<CommonResponse<SignUpResult>> signUp(
     CreateMemberRequest request,
   ) async {
-    final response = await _dio.post(
-      '/v6/members',
-      data: request.toJson(),
-    );
+    final response = await _dio.post('/v7/members', data: request.toJson());
 
     return CommonResponse<SignUpResult>.fromJson(
       response.data as Map<String, dynamic>,

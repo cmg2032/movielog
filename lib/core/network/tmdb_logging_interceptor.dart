@@ -33,16 +33,9 @@ class TmdbLoggingInterceptor extends Interceptor {
     handler.next(err);
   }
 
-  /// "Bearer eyJhbGciOi...Xy9z" → "Bearer eyJh****Xy9z"
+  /// 토큰 원문은 일부도 찍지 않고, 붙어 있는지만 표시
   String _mask(String? value) {
-    if (value == null || value.isEmpty) return '(없음)';
-
-    const prefix = 'Bearer ';
-    final token = value.startsWith(prefix)
-        ? value.substring(prefix.length)
-        : value;
-
-    if (token.length <= 8) return '$prefix****';
-    return '$prefix${token.substring(0, 4)}****${token.substring(token.length - 4)}';
+    if (value == null || value.isEmpty || value == 'Bearer ') return '(없음)';
+    return 'Bearer ****(있음)';
   }
 }

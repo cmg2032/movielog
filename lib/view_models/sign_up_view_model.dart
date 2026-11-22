@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import '../data/services/sign_up_service.dart';
+import '../core/network/api_error.dart';
+import '../data/services/auth_api_service.dart';
+import '../data/services/member_check_service.dart';
 import '../models/create_member_request.dart';
+import '../data/models/login_models.dart';
 import 'submit_status.dart';
 
 export 'submit_status.dart';
@@ -11,8 +14,9 @@ export 'submit_status.dart';
 enum CheckStatus { idle, checking, available, duplicated, error }
 
 class SignUpViewModel extends ChangeNotifier {
-  SignUpViewModel(this._service);
-  final SignUpService _service;
+  SignUpViewModel(this._service, this._authService);
+  final MemberCheckService _service;
+  final AuthApiService _authService;
 
   static final _emailRegExp = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
 
@@ -26,10 +30,8 @@ class SignUpViewModel extends ChangeNotifier {
   /// - 서버가 응답을 줬으면(400, 409 등) 서버의 message를 그대로 사용
   /// - 응답 자체가 없으면(연결 실패, 타임아웃) 네트워크 오류 문구
   static String _messageFrom(DioException e, String fallback) {
-    final data = e.response?.data;
-    if (data is Map && data['message'] is String) {
-      return data['message'] as String;
-    }
+    final message = apiErrorMessage(e);
+    if (message != null) return message;
     final statusCode = e.response?.statusCode;
     if (e.response == null) return _networkErrorText; // 응답 자체가 없음
     if (statusCode == 404) {
@@ -187,6 +189,7 @@ class SignUpViewModel extends ChangeNotifier {
   // ─────────────────────────────────────────────
   SubmitStatus submitStatus = SubmitStatus.idle;
   int? createdMemberId; // 가입 성공 응답에서 읽은 실제 ID입니다.
+  LoginResult? loginResult; // 가입 직후 자동 로그인 결과 (실패하면 null → 로그인 화면으로 안내)
   String? passwordErrorText;
   String? snackbarMessage;
 
@@ -212,6 +215,7 @@ class SignUpViewModel extends ChangeNotifier {
     if (submitStatus == SubmitStatus.submitting) return;
     submitStatus = SubmitStatus.submitting;
     createdMemberId = null;
+    loginResult = null;
     passwordErrorText = null;
     snackbarMessage = null;
     notifyListeners();
@@ -221,12 +225,29 @@ class SignUpViewModel extends ChangeNotifier {
       final id = response.result?.memberId;
       if (id == null) throw StateError('회원가입 결과에 memberId가 없습니다.');
       createdMemberId = id;
+      // 가입한 이메일·비밀번호로 바로 로그인해서 토큰을 받음.
+      // 로그인이 실패해도 가입은 이미 성공했으므로 success로 두고, 화면이 로그인 화면으로 안내합니다.
+      try {
+        loginResult = await _authService.login(
+          LoginRequest(email: request.email, password: request.password),
+        );
+      } catch (_) {
+        loginResult = null;
+      }
       submitStatus = SubmitStatus.success;
     } on DioException catch (error) {
       submitStatus = SubmitStatus.error;
       final message = writeSignUpErrorMessage(error);
-      if (error.response?.statusCode == 400 && message.contains('비밀번호')) {
+      // COMMON400(입력 검증 실패): 서버 message를 해당 입력 필드 아래에 그대로 표시
+      // 그 밖의 실패(409 중복 등)는 SnackBar. 어느 경우든 입력값은 지우지 않습니다.
+      if (apiErrorCode(error) == 'COMMON400' && message.contains('비밀번호')) {
         passwordErrorText = message;
+      } else if (apiErrorCode(error) == 'COMMON400' &&
+          message.contains('닉네임')) {
+        nicknameErrorText = message;
+      } else if (apiErrorCode(error) == 'COMMON400' &&
+          message.contains('이메일')) {
+        emailErrorText = message;
       } else {
         snackbarMessage = message;
       }

@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../models/create_member_request.dart';
-import '../view_models/learning_member_session.dart';
+import '../view_models/auth_view_model.dart';
 import '../view_models/sign_up_view_model.dart';
 import '../widgets/common_app_bar.dart';
 import '../widgets/movielog_button.dart';
@@ -63,7 +63,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         viewModel.canSubmit; // 닉네임·이메일 '사용 가능' + 제출 중 아님
   }
 
-  /// 서버에 회원가입 요청 → 성공하면 memberId를 세션에 저장 후 영화 목록으로
+  /// 서버에 회원가입 요청 → 바로 로그인해서 토큰을 세션에 저장 후 홈으로
   Future<void> onSubmitPressed(BuildContext context) async {
     if (!formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
@@ -81,10 +81,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (viewModel.submitStatus == SubmitStatus.success &&
         viewModel.createdMemberId != null) {
-      context.read<LearningMemberSession>().setMemberId(
-        viewModel.createdMemberId!,
-      );
-      context.go('/home');
+      final login = viewModel.loginResult;
+      if (login != null) {
+        final saved = await context.read<AuthViewModel>().signIn(
+          accessToken: login.accessToken,
+          nickname: login.nickname,
+        );
+        if (!context.mounted) return;
+        if (saved) {
+          context.go('/home');
+        } else {
+          // 가입은 됐지만 토큰을 기기에 저장하지 못함 → 로그인 화면에서 다시 시도
+          context.go('/login');
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text('회원가입은 완료됐지만 로그인 정보를 저장하지 못했어요. 다시 로그인해 주세요.'),
+              ),
+            );
+        }
+      } else {
+        // 가입은 됐지만 자동 로그인 실패 → 로그인 화면에서 직접 로그인
+        context.go('/login');
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('회원가입이 완료됐어요. 로그인해 주세요.')),
+          );
+      }
       return;
     }
 
@@ -225,7 +250,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // context.pop()은 PopScope를 거치지 않으므로 여기서 직접 막음
               onBack: () {
                 if (isSubmitting) return;
-                context.canPop() ? context.pop() : context.go('/start');
+                context.canPop() ? context.pop() : context.go('/login');
               },
             ),
             body: child,
