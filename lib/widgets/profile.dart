@@ -1,45 +1,64 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/mock_data.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../view_models/auth_view_model.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // v7 GET me 응답(이메일·닉네임·가입일) 표시 (ProfileScreen이 member가 있을 때만 그림)
+    // 프로필 수정 후 AuthViewModel.member가 바뀌면 바로 새 값으로 보임
+    final member = context.watch<AuthViewModel>().member;
+    if (member == null) return const SizedBox.shrink();
     return Column(
       children: [
+        // 사진은 기존 디자인 예시 (GET me 응답에 없음)
         Container(
-          padding: const EdgeInsets.all(3),
+          padding: const EdgeInsets.all(2),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.lightViolet,
+            color: AppColors.violet,
           ),
           child: ClipOval(
             child: Image.asset(
               profileImage,
-              width: 160,
-              height: 160,
+              width: 124,
+              height: 124,
               fit: BoxFit.cover,
             ),
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          '무비러버',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        Text(
+          member.nickname,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '매주 주말엔 영화관으로 출근하는 프로 관람객. 좋은 영화를 보고 기록하는 것을 좋아합니다.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, height: 1.5, color: AppColors.gray),
+        Text(
+          formatJoinedDate(member.createdAt),
+          style: const TextStyle(fontSize: 13, color: AppColors.gray),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          member.email,
+          style: const TextStyle(fontSize: 14, color: AppColors.gray),
         ),
       ],
     );
   }
+}
+
+/// 가입일 → "2026.10.10 가입" (기기 시간대 기준 날짜)
+String formatJoinedDate(DateTime createdAt) {
+  final local = createdAt.toLocal();
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${local.year}.${two(local.month)}.${two(local.day)} 가입';
 }
 
 class ProfileStats extends StatelessWidget {
@@ -96,10 +115,14 @@ class EditProfileButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 내 정보를 불러온 뒤에만 켬 (이메일·현재 닉네임이 있어야 수정 화면을 채울 수 있음)
+    final hasMember = context.select<AuthViewModel, bool>(
+      (a) => a.member != null,
+    );
     return SizedBox(
       width: 160,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: hasMember ? () => context.push('/my/profile/edit') : null,
         style: ElevatedButton.styleFrom(
           foregroundColor: AppColors.violet,
           backgroundColor: AppColors.white,

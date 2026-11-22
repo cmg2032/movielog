@@ -29,6 +29,13 @@ android {
         versionName = flutter.versionName
     }
 
+    // AGP 기본 규칙(".*")은 이름이 점으로 시작하는 에셋을 APK에서 뺍니다.
+    // flutter_dotenv가 읽는 .env가 빠지면 main()의 dotenv.load()가 실패해 첫 화면이 뜨지 않으므로,
+    // 기본 목록에서 ".*"만 제외합니다.
+    androidResources {
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

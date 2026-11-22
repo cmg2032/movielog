@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -300,7 +300,6 @@ class _ConfirmDialogLayout extends StatelessWidget {
   }
 }
 
-/// 평점 카드: 포스터 | 제목 · 별점 N / 5 · 후기 · 등록일
 /// 평점 수정 Dialog 열기 (저장은 Dialog 안에서 onSubmit으로 실행)
 Future<void> onEditPressed(BuildContext context, RatingDto rating) async {
   final saved = await showDialog<bool>(

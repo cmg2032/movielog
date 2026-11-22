@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'app/movie_log_app.dart';

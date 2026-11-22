@@ -10,10 +10,9 @@ import '../models/tmdb_movie_dto.dart';
 enum MyRatingsLoadStatus { idle, loading, success, empty, error }
 
 class MyRatingsViewModel extends ChangeNotifier {
-  MyRatingsViewModel(this._service, this._movieService, this.memberId);
-  final RatingApiService _service;
+  MyRatingsViewModel(this._service, this._movieService);
+  final RatingApiService _service; // 토큰으로 '나'를 식별하므로 memberId가 필요 없음
   final TmdbMovieService _movieService;
-  final int memberId;
   final Map<int, TmdbMovieDto?> _movieCache = {};
   int _requestVersion = 0;
   bool _disposed = false;
@@ -54,7 +53,7 @@ class MyRatingsViewModel extends ChangeNotifier {
     try {
       for (final ratingId in selectedRatingIds.toList()) {
         try {
-          await _service.deleteRating(memberId: memberId, ratingId: ratingId);
+          await _service.deleteRating(ratingId);
           selectedRatingIds.remove(ratingId);
           deleted.add(ratingId);
         } on DioException {
@@ -86,7 +85,7 @@ class MyRatingsViewModel extends ChangeNotifier {
   Future<({List<RatingWithMovie> entries, int missingMovies})?> _fetchEntries(
     int version,
   ) async {
-    final rawRatings = await _service.fetchMyRatings(memberId);
+    final rawRatings = await _service.fetchMyRatings();
     if (_disposed || version != _requestVersion) return null;
     final entries = <RatingWithMovie>[];
     var missingMovies = 0;
@@ -168,7 +167,6 @@ class MyRatingsViewModel extends ChangeNotifier {
   }) async {
     try {
       await _service.updateRating(
-        memberId: memberId,
         ratingId: ratingId,
         score: score,
         comment: comment,
@@ -187,7 +185,7 @@ class MyRatingsViewModel extends ChangeNotifier {
   /// 평점 삭제: 성공하면 목록을 다시 조회(마지막 항목이면 Empty UI), 실패하면 예외를 그대로 던짐
   Future<void> deleteRating(int ratingId) async {
     try {
-      await _service.deleteRating(memberId: memberId, ratingId: ratingId);
+      await _service.deleteRating(ratingId);
     } on DioException catch (error) {
       if (!_disposed && shouldRefreshAfterRatingError(error)) {
         _refreshAfterWrite();
